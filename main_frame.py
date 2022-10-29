@@ -32,7 +32,7 @@ class MainFrame(ttk.Frame):
         self.root['menu'] = self.menu_bar
         self.menu_bar.add_cascade(menu=self.menu_file, label='File')
         self.menu_file.add_command(label='Save', command=self.save)
-        self.menu_file.add_command(label='Load')
+        self.menu_file.add_command(label='Load', command=self.load)
 
         # tasks notebook setup
         self.morning_tab = ttk.Notebook(self.root_frame)
@@ -57,14 +57,13 @@ class MainFrame(ttk.Frame):
 
         # set the list for all tasks
 
-    def load_history(self):
-        todays_date = datetime.now().strftime("%m.%d.%Y")
+    def load_history(self, date=datetime.now().strftime("%m.%d.%Y")):
         tasks_dir = os.path.join(PATH, TASK_DATA_DIR)
         tasks_data_filenames = os.listdir(tasks_dir)
         for tasks_filename in tasks_data_filenames:
-            if tasks_filename == todays_date + '.txt':
+            if tasks_filename == date + '.txt':
                 # load the file data
-                with open(os.path.join(tasks_dir, todays_date + '.txt'), 'r') as file_reader:
+                with open(os.path.join(tasks_dir, date + '.txt'), 'r') as file_reader:
                     lines = file_reader.read().splitlines()
 
         data = {'Early Morning': [], 'Late Morning': [], 'Early Afternoon': [], 'Late Afternoon': []}
@@ -93,7 +92,28 @@ class MainFrame(ttk.Frame):
         return [f'{", ".join([task["State"].get(), task["Text"].get(), task_category])}' for task in task_data]
 
     def load(self):
-        pass
+        # show a date picker
+        newWindow = tk.Toplevel(self.root)
+        newWindow.title('Calendar')
+        newWindow.geometry("300x300")
+        cal = Calendar(
+            newWindow,
+            selectmode='day',
+            year=datetime.now().year,
+            month=datetime.now().month,
+            day=datetime.now().day
+        )
+        cal.grid(row=0, column=0)
+
+        def handle_load_tasks_click():
+            calendar_date = cal.get_date()
+            datetime_date = datetime.strptime(calendar_date, "%m/%d/%y")
+            print(datetime_date.strftime("%m.%d.%Y"))
+            self.load_history(datetime_date.strftime("%m.%d.%Y"))
+        button = ttk.Button(newWindow, text='Load Tasks', command=handle_load_tasks_click)
+        button.grid(row=1, column=0)
+
+
 
 
     #     self.inf_loop()
